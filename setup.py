@@ -34,7 +34,7 @@ setuptools.setup(
     description="A Python library for analyzing password strength using machine learning.",
     long_description=long_description,
     long_description_content_type="text/markdown", 
-    url="https://github.com/theguyindark/passwordscoring-app.git", 
+    url="https://github.com/theguyindark/password-strength-app.git", 
     packages=setuptools.find_packages(), 
     package_data=package_data, 
     include_package_data=True, 
