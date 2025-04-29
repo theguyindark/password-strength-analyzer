@@ -1,6 +1,6 @@
 # Password Strength Analyzer
 
-A Python library for analyzing password strength using machine learning with a user-friendly GUI interface.
+A Python library for analyzing password strength using machine learning, including a user-friendly GUI application.
 
 ## Features
 
@@ -22,28 +22,48 @@ pip install -r requirements.txt
 
 ### Running the GUI Application
 
-To run the GUI application:
+To quickly test the password strength analysis, run the included GUI application:
 ```bash
 python password_strength_gui.py
 ```
+This will open a window where you can enter a password and see its strength score and analysis.
 
 ### Using the Library in Your Code
+
+You can easily integrate the password strength analysis into your own Python applications. The library comes with pre-trained machine learning models, so you typically do not need to train the models yourself to start using it for predictions.
 
 ```python
 from password_strength import PasswordStrengthScorer
 
-# Initialize the scorer
-scorer = PasswordStrengthScorer()
+# Initialize the scorer.
+# This automatically loads the pre-trained models included with the library.
+# You can optionally specify a directory if your model files are elsewhere:
+# scorer = PasswordStrengthScorer(models_dir='/path/to/your/model_files')
+try:
+    scorer = PasswordStrengthScorer()
 
-# Train the model with your password dataset
-# X should be a list of passwords
-# y should be a list of labels (0 for weak, 1 for strong)
-scorer.train(X, y)
+    # Analyze a password
+    password_to_check = "MySecureP@ssw0rd123!"
+    strength_predictions = scorer.predict_strength(password_to_check)
 
-# Analyze a password
-strength = scorer.predict_strength("your_password")
-description = scorer.get_strength_description(strength)
-print(f"Password strength: {strength}% ({description})")
+    # Get the overall ensemble strength (average of models)
+    ensemble_strength = strength_predictions['ensemble']
+
+    # Get a human-readable description
+    description = scorer.get_strength_description(ensemble_strength)
+
+    print(f"Analyzing password: '{password_to_check}'")
+    print(f"Overall Strength: {ensemble_strength}% ({description})")
+    print(f"Random Forest Strength: {strength_predictions['random_forest']}%")
+    print(f"SVM Strength: {strength_predictions['svm']}%")
+
+    # You can also get the extracted features
+    features = scorer.extract_features(password_to_check)
+    print("\nExtracted Features:")
+    print(features)
+
+except Exception as e:
+    print(f"An error occurred while using the scorer: {e}")
 ```
 
 ## GUI Features
@@ -51,8 +71,8 @@ print(f"Password strength: {strength}% ({description})")
 - Password entry field with show/hide option
 - Real-time strength analysis
 - Visual strength meter with color coding
-- Generate strong password button
-- Strength description and percentage
+- Detailed analysis results display.
+- Theme switcher (Dark/Light mode).
 
 ## Requirements
 
@@ -61,7 +81,4 @@ print(f"Password strength: {strength}% ({description})")
 - pandas
 - scikit-learn
 - tkinter
-
-## Note
-
-The machine learning model needs to be trained with a dataset of passwords and their corresponding strength labels before it can be used for prediction. You can use your own dataset or create one based on common password strength criteria. "# passwordscoring-app" 
+- custom tkinter

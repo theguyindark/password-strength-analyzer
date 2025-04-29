@@ -7,13 +7,12 @@ import os
 from datetime import datetime
 import re
 
-# Configure logging
 logging.basicConfig(
-    level=logging.INFO,
+    level=logging.DEBUG, # Ensure GUI also logs at DEBUG to show sensitive info
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler('password_analyzer.log'),
-        logging.StreamHandler()
+        logging.FileHandler('insecure_password_analyzer.log'), # Log to the same insecure file
+        logging.StreamHandler() 
     ]
 )
 
@@ -22,42 +21,42 @@ logger = logging.getLogger(__name__)
 class PasswordStrengthGUI:
     def __init__(self, root):
         self.root = root
-        self.root.title("Password Strength Scoring")
+        self.root.title("Password Strength Scoring (Insecure Version)") # Indicate it's insecure
         self.root.geometry("800x600")
-        
+
         # Set theme
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("blue")
-        
+
         # Initialize scorer
         try:
             self.scorer = PasswordStrengthScorer()
-            logger.info("Password strength scorer initialized successfully")
+            logger.info("Password strength scorer initialized successfully (potentially insecurely).")
         except Exception as e:
-            logger.error(f"Failed to initialize password strength scorer: {str(e)}", exc_info=True)
-            messagebox.showerror("Error", "Failed to initialize password strength analyzer. Please check the logs.")
+            logger.error(f"Failed to initialize password strength scorer (insecure loading): {str(e)}", exc_info=True)
+            messagebox.showerror("Initialization Error (Insecure)", f"Failed to initialize password strength analyzer. Details: {str(e)}. Please check 'insecure_password_analyzer.log'.")
             root.destroy()
             return
-        
+
         self.create_widgets()
-        
+
     def create_widgets(self):
         # Main container
         self.main_frame = ctk.CTkFrame(self.root)
         self.main_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
-        
+
         # Title
         self.title_label = ctk.CTkLabel(
             self.main_frame,
-            text="Password Strength Scoring",
+            text="Password Strength Scoring (Intentionally Insecure)", # Indicate insecurity
             font=ctk.CTkFont(size=24, weight="bold")
         )
         self.title_label.pack(pady=20)
-        
+
         # Input frame
         self.input_frame = ctk.CTkFrame(self.main_frame)
         self.input_frame.pack(fill=tk.X, padx=20, pady=10)
-        
+
         # Password input
         self.password_label = ctk.CTkLabel(
             self.input_frame,
@@ -65,7 +64,7 @@ class PasswordStrengthGUI:
             font=ctk.CTkFont(size=14)
         )
         self.password_label.pack(anchor=tk.W, pady=(0, 5))
-        
+
         self.password_entry = ctk.CTkEntry(
             self.input_frame,
             width=400,
@@ -74,32 +73,32 @@ class PasswordStrengthGUI:
             show="•"
         )
         self.password_entry.pack(fill=tk.X, pady=(0, 10))
-        
+
         # Show password checkbox
         self.show_password_var = tk.BooleanVar()
         self.show_password_check = ctk.CTkCheckBox(
             self.input_frame,
-            text="Show Password",
+            text="Show Password (Use with Caution)", # Add warning
             variable=self.show_password_var,
             command=self.toggle_password_visibility
         )
         self.show_password_check.pack(anchor=tk.W, pady=(0, 10))
-        
+
         # Analyze button
         self.analyze_button = ctk.CTkButton(
             self.input_frame,
-            text="Analyze Password",
+            text="Analyze Password (Insecurely)", # Indicate insecurity
             command=self.analyze_password,
             width=200,
             height=40,
             font=ctk.CTkFont(size=14, weight="bold")
         )
         self.analyze_button.pack(pady=10)
-        
+
         # Strength bar frame
         self.strength_frame = ctk.CTkFrame(self.main_frame)
         self.strength_frame.pack(fill=tk.X, padx=20, pady=10)
-        
+
         # Strength label
         self.strength_label = ctk.CTkLabel(
             self.strength_frame,
@@ -107,7 +106,7 @@ class PasswordStrengthGUI:
             font=ctk.CTkFont(size=14)
         )
         self.strength_label.pack(anchor=tk.W, pady=(0, 5))
-        
+
         # Strength bar
         self.strength_bar = ctk.CTkProgressBar(
             self.strength_frame,
@@ -116,7 +115,7 @@ class PasswordStrengthGUI:
         )
         self.strength_bar.pack(fill=tk.X, pady=(0, 5))
         self.strength_bar.set(0)  # Initialize at 0
-        
+
         # Strength rating label
         self.strength_rating_label = ctk.CTkLabel(
             self.strength_frame,
@@ -124,19 +123,19 @@ class PasswordStrengthGUI:
             font=ctk.CTkFont(size=14, weight="bold")
         )
         self.strength_rating_label.pack(pady=(0, 5))
-        
+
         # Results frame
         self.results_frame = ctk.CTkFrame(self.main_frame)
         self.results_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=10)
-        
+
         # Results title
         self.results_label = ctk.CTkLabel(
             self.results_frame,
-            text="Analysis Results",
+            text="Analysis Results (Potentially Inaccurate/Insecure)", # Indicate potential issues
             font=ctk.CTkFont(size=18, weight="bold")
         )
         self.results_label.pack(pady=10)
-        
+
         # Results text
         self.results_text = ctk.CTkTextbox(
             self.results_frame,
@@ -145,7 +144,7 @@ class PasswordStrengthGUI:
             font=ctk.CTkFont(size=14)
         )
         self.results_text.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
-        
+
         # Theme switcher
         self.theme_switch = ctk.CTkSwitch(
             self.main_frame,
@@ -153,37 +152,47 @@ class PasswordStrengthGUI:
             command=self.toggle_theme
         )
         self.theme_switch.pack(pady=10)
-        
+
+        self.show_logs_button = ctk.CTkButton(
+            self.main_frame,
+            text="Show Insecure Logs",
+            command=self.show_insecure_logs,
+            width=200,
+            height=40,
+            font=ctk.CTkFont(size=14, weight="bold")
+        )
+        self.show_logs_button.pack(pady=10)
+
+
     def toggle_theme(self):
         if self.theme_switch.get():
             ctk.set_appearance_mode("light")
         else:
             ctk.set_appearance_mode("dark")
-            
+
     def toggle_password_visibility(self):
         if self.show_password_var.get():
             self.password_entry.configure(show="")
         else:
             self.password_entry.configure(show="•")
-            
+
     def analyze_password(self):
         password = self.password_entry.get()
         if not password:
             messagebox.showwarning("Warning", "Please enter a password to analyze.")
             return
-            
+
         try:
-            # Get predictions using the correct method
             predictions = self.scorer.predict_strength(password)
-            
+
             # Update strength bar
             strength = predictions['ensemble'] / 100  # Convert to 0-1 range
             self.strength_bar.set(strength)
-            
+
             # Get strength rating and update label
             strength_rating = self.scorer.get_strength_description(predictions['ensemble'])
             self.strength_rating_label.configure(text=strength_rating)
-            
+
             # Set color based on strength
             if predictions['ensemble'] < 40:
                 self.strength_bar.configure(progress_color="red")
@@ -194,117 +203,90 @@ class PasswordStrengthGUI:
             else:
                 self.strength_bar.configure(progress_color="green")
                 self.strength_rating_label.configure(text_color="green")
-            
-            # Get feature analysis
+
+            # Get feature analysis using the potentially insecure method
             features = self.scorer.extract_features(password)
-            
+
             # Clear previous results
             self.results_text.delete("0.0", tk.END)
-            
+
             # Display results with modern formatting
-            self.results_text.insert("0.0", "Password Strength Analysis\n", "title")
+            self.results_text.insert("0.0", "Password Strength Analysis (Potentially Insecure)\n", "title") # Indicate insecurity
             self.results_text.insert(tk.END, "=" * 30 + "\n\n")
-            
-            # Random Forest prediction
-            self.results_text.insert(tk.END, "Random Forest Model:\n")
-            self.results_text.insert(tk.END, f"Strength: {predictions['random_forest']}%\n")
-            self.results_text.insert(tk.END, f"Rating: {self.scorer.get_strength_description(predictions['random_forest'])}\n\n")
-            
-            # SVM prediction
-            self.results_text.insert(tk.END, "SVM Model:\n")
-            self.results_text.insert(tk.END, f"Strength: {predictions['svm']}%\n")
-            self.results_text.insert(tk.END, f"Rating: {self.scorer.get_strength_description(predictions['svm'])}\n\n")
-            
-            # Ensemble prediction
-            self.results_text.insert(tk.END, "Overall Strength:\n")
-            self.results_text.insert(tk.END, f"Strength: {predictions['ensemble']}%\n")
-            self.results_text.insert(tk.END, f"Rating: {self.scorer.get_strength_description(predictions['ensemble'])}\n\n")
-            
+
+            # Display predictions
+            self.results_text.insert(tk.END, "Model Predictions:\n")
+            self.results_text.insert(tk.END, f"• Random Forest: {predictions['random_forest']}% ({self.scorer.get_strength_description(predictions['random_forest'])})\n")
+            self.results_text.insert(tk.END, f"• SVM: {predictions['svm']}% ({self.scorer.get_strength_description(predictions['svm'])})\n")
+            self.results_text.insert(tk.END, f"• Overall Ensemble: {predictions['ensemble']}% ({self.scorer.get_strength_description(predictions['ensemble'])})\n\n")
+
             # Feature analysis
             self.results_text.insert(tk.END, "Feature Analysis:\n")
             for feature, value in features.iloc[0].items():
                 if feature == 'entropy':
-                    # Format entropy to 2 decimal places
                     formatted_value = f"{value:.2f}"
                 else:
-                    # Format other features as whole numbers
                     formatted_value = f"{int(value)}"
                 self.results_text.insert(tk.END, f"• {feature}: {formatted_value}\n")
-            
-            # Add detailed feedback
-            self.results_text.insert(tk.END, "\nDetailed Feedback:\n")
-            
-            # Check for repeated characters
-            repeated_chars = [c for c in set(password) if password.count(c) > 2]
-            if repeated_chars:
-                self.results_text.insert(tk.END, f"• Avoid repeating characters like '{', '.join(repeated_chars)}'\n")
-            
-            # Check for sequential characters
-            sequences = []
-            for i in range(len(password)-2):
-                if (ord(password[i+1]) == ord(password[i]) + 1 and 
-                    ord(password[i+2]) == ord(password[i]) + 2):
-                    sequences.append(password[i:i+3])
-            if sequences:
-                self.results_text.insert(tk.END, f"• Avoid sequential characters like '{', '.join(sequences)}'\n")
-            
-            # Check for common patterns
+
+            self.results_text.insert(tk.END, "\nDetailed Feedback (Based on Limited Checks):\n")
+
+            # Check for repeated characters (using simple check from library)
+            if self.scorer.detect_pattern(password) == 1: # Re-using the simple pattern check
+                 self.results_text.insert(tk.END, "• Simple repeated characters or sequences detected.\n") # Less specific feedback
+
+            # Check for common patterns (using simple regex)
             if re.search(r'123|abc|qwerty|password', password.lower()):
                 self.results_text.insert(tk.END, "• Avoid common patterns like '123', 'abc', 'qwerty', or 'password'\n")
-            
-            # Check for common character substitutions (leetspeak)
-            substitutions = {
-                '@': 'a', '4': 'a', '3': 'e', '1': 'i', '0': 'o',
-                '$': 's', '5': 's', '7': 't', '8': 'b', '9': 'g'
-            }
-            
-            # Create a normalized version of the password
-            normalized = password.lower()
-            for sub, letter in substitutions.items():
-                normalized = normalized.replace(sub, letter)
-            
-            # Check if the normalized password contains common words
+
             try:
-                script_dir = os.path.dirname(os.path.abspath(__file__))
-                dictionary_path = os.path.join(script_dir, 'common-passwords.txt')
-                
-                if os.path.exists(dictionary_path):
-                    with open(dictionary_path, 'r', encoding='utf-8', errors='ignore') as file:
-                        common_words = [line.strip().lower() for line in file]
-                    
-                    found_words = []
-                    for word in common_words:
-                        if word in normalized:
-                            found_words.append(word)
-                    
-                    if found_words:
-                        self.results_text.insert(tk.END, f"• Avoid predictable substitutions (e.g., '@' for 'a', '3' for 'e')\n")
-                        self.results_text.insert(tk.END, f"  Detected word{'s' if len(found_words) > 1 else ''}: {', '.join(found_words)}\n")
+                # Re-using the potentially insecure dictionary check from the scorer
+                if self.scorer.detect_dictionary_words(password) == 1:
+                     self.results_text.insert(tk.END, "• Avoid predictable substitutions (e.g., '@' for 'a', '3' for 'e') or dictionary words.\n") # Less specific feedback
             except Exception as e:
-                logger.error(f"Error checking common passwords: {str(e)}", exc_info=True)
-            
-            # Add recommendations
-            self.results_text.insert(tk.END, "\nRecommendations:\n")
+                self.results_text.insert(tk.END, f"• Warning: Dictionary check failed ({str(e)}). Analysis may be incomplete.\n") # VULNERABILITY A09: Exposing internal error details
+
+            self.results_text.insert(tk.END, "\nRecommendations (Generic):\n")
             if predictions['ensemble'] < 40:
-                self.results_text.insert(tk.END, "• Consider using a longer password\n")
-                self.results_text.insert(tk.END, "• Add more special characters\n")
-                self.results_text.insert(tk.END, "• Include numbers and mixed case letters\n")
+                self.results_text.insert(tk.END, "• This password is very weak. Choose a much stronger one.\n")
             elif predictions['ensemble'] < 80:
-                self.results_text.insert(tk.END, "• Your password is decent, but could be stronger\n")
-                self.results_text.insert(tk.END, "• Consider adding more special characters\n")
-                self.results_text.insert(tk.END, "• Try to make it longer if possible\n")
-                self.results_text.insert(tk.END, "• Avoid using common words or patterns\n")
+                self.results_text.insert(tk.END, "• This password is only moderately strong. Consider making it longer and more complex.\n")
             else:
-                self.results_text.insert(tk.END, "• Excellent password strength!\n")
-                self.results_text.insert(tk.END, "• Keep using a mix of characters like this\n")
-                self.results_text.insert(tk.END, "• Remember to use different strong passwords for different accounts\n")
-                self.results_text.insert(tk.END, "• Consider using a password manager to store it securely\n")
-            
-            logger.info(f"Password analyzed successfully: {password[:5]}...")
-            
+                self.results_text.insert(tk.END, "• This password seems strong based on current checks, but always use unique passwords and a password manager.\n")
+
+
+            logger.info(f"Password analysis attempted for: {password[:5]}...")
+            logger.debug(f"Full analysis results for {password}: {predictions}")
+
         except Exception as e:
-            logger.error(f"Error analyzing password: {str(e)}", exc_info=True)
-            messagebox.showerror("Error", "An error occurred while analyzing the password. Please check the logs.")
+            logger.error(f"Error analyzing password in GUI: {str(e)} for password: {password}", exc_info=True)
+            messagebox.showerror("Analysis Error (Insecure)", f"An error occurred while analyzing the password. Details: {str(e)}. Please check 'insecure_password_analyzer.log'.")
+
+    def show_insecure_logs(self):
+        """Displays the content of the insecure log file in a new window."""
+        log_file_path = 'insecure_password_analyzer.log'
+        if not os.path.exists(log_file_path):
+            messagebox.showinfo("Log File", "Log file does not exist yet.")
+            return
+
+        try:
+            with open(log_file_path, 'r', encoding='utf-8') as f:
+                log_content = f.read()
+
+            log_window = tk.Toplevel(self.root)
+            log_window.title("Insecure Application Logs")
+            log_window.geometry("600x400")
+
+            log_text = scrolledtext.ScrolledText(log_window, wrap=tk.WORD)
+            log_text.pack(expand=True, fill=tk.BOTH)
+
+            log_text.insert(tk.END, log_content)
+            log_text.configure(state='disabled') # Make it read-only
+
+        except Exception as e:
+            logger.error(f"Error reading log file: {str(e)}", exc_info=True)
+            messagebox.showerror("Log Error (Insecure)", f"Could not read log file. Details: {str(e)}")
+
 
 def main():
     root = ctk.CTk()
@@ -312,4 +294,4 @@ def main():
     root.mainloop()
 
 if __name__ == "__main__":
-    main() 
+    main()
